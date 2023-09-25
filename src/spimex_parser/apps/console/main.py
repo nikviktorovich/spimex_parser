@@ -30,7 +30,8 @@ def parse_file_and_add_to_repo(
     data_file_path: str,
 ) -> None:
     with deps.get_parser_uow(data_file_path) as uow:
-        trading_results_repo.add_bulk(uow.data)
+        obtained_trading_results = uow.data.list()
+        trading_results_repo.add_bulk(obtained_trading_results)
 
 
 def parse_file_and_add_to_database(data_file_path: str) -> None:

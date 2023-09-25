@@ -1,49 +1,28 @@
 import datetime
-from collections.abc import Iterator
-from typing import NamedTuple
-
-import pandas as pd
+from typing import List
 
 from spimex_parser.domain import models
+from spimex_parser.modules.parser import data_table
 
 
 class SpimexTradingResultsRepository:
-    def __iter__(self) -> Iterator[models.TradingResult]:
+    def list(self) -> List[models.TradingResult]:
         raise NotImplementedError()
 
 
-class PandasSpimexTradingResultsRepository(SpimexTradingResultsRepository):
-    frame: pd.DataFrame
+class TableSpimexTradingResultsRepository(SpimexTradingResultsRepository):
+    results_data_table: data_table.TradingResultsDataTable
     date: datetime.date
 
 
-    def __init__(self, frame: pd.DataFrame, date: datetime.date) -> None:
-        self.frame = frame
+    def __init__(
+        self,
+        results_data_table: data_table.TradingResultsDataTable,
+        date: datetime.date,
+    ) -> None:
+        self.results_data_table = results_data_table
         self.date = date
 
 
-    def __iter__(self) -> Iterator[models.TradingResult]:
-        for row in self.frame.itertuples():
-            parsed_row = self._parse_row(row)
-            yield parsed_row
-    
-
-    def _parse_row(self, row: NamedTuple) -> models.TradingResult:
-        current_datetime = datetime.datetime.now()
-        exchange_product_id = row[1]
-        oil_trading_record = models.TradingResult(
-            id=None,
-            exchange_product_id=exchange_product_id,
-            exchange_product_name=row[2],
-            oil_id=exchange_product_id[:4],
-            delivery_basis_id=exchange_product_id[4:7],
-            delivery_basis_name=row[3],
-            delivery_type_id=exchange_product_id[-1],
-            volume=int(row[4]),
-            total=int(row[5]),
-            count=int(row[-1]),
-            date=self.date,
-            created_on=current_datetime,
-            updated_on=current_datetime,
-        )
-        return oil_trading_record
+    def list(self) -> List[models.TradingResult]:
+        return self.results_data_table.list_results()

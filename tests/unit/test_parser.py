@@ -9,5 +9,5 @@ def test_loading_from_url() -> None:
 
     for url in urls:
         with unit_of_work.PandasSpimexTradingResultsUnitOfWork(url) as uow:
-            item = next(iter(uow.data))
-            assert item is not None
+            trading_results = uow.data.list()
+            assert trading_results

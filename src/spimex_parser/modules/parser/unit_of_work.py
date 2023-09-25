@@ -4,6 +4,7 @@ import urllib.parse
 
 import pandas as pd
 
+from spimex_parser.modules.parser import data_table
 from spimex_parser.modules.parser import repositories
 
 
@@ -19,50 +20,19 @@ class SpimexTradingResultsUnitOfWork:
 
 
 class PandasSpimexTradingResultsUnitOfWork(SpimexTradingResultsUnitOfWork):
-    oil_data_path: str
-
-
     def __init__(self, oil_data_path: str) -> None:
         self.oil_data_path = oil_data_path
 
 
     def __enter__(self) -> SpimexTradingResultsUnitOfWork:
         frame = pd.read_excel(self.oil_data_path, na_values=['-'])
-        clean_frame = self._extract_table(frame)
         date = self._parse_date_from_path(self.oil_data_path)
-        self.data = repositories.PandasSpimexTradingResultsRepository(
-            clean_frame,
+        trading_results_table = data_table.PandasTradingResultsDataTable(frame, date)
+        self.data = repositories.TableSpimexTradingResultsRepository(
+            trading_results_table,
             date,
         )
         return self
-    
-
-    def _extract_table(self, frame: pd.DataFrame) -> pd.DataFrame:
-        frame = self._skip_empty_column(frame)
-        frame = self._extract_table_rows(frame)
-        frame = self._drop_nan_contracts(frame)
-        return frame
-    
-
-    def _skip_empty_column(self, frame: pd.DataFrame) -> pd.DataFrame:
-        return frame.iloc[:, 1:]
-    
-
-    def _extract_table_rows(self, frame: pd.DataFrame) -> pd.DataFrame:
-        SUMMARY_ROWS_COUNT = 2
-        table_start_index = self._find_table_start_index(frame)
-        return frame.iloc[table_start_index:-SUMMARY_ROWS_COUNT]
-    
-
-    def _find_table_start_index(self, frame: pd.DataFrame) -> int:
-        HEADERS_OFFSET = 2
-        table_name = 'Единица измерения: Метрическая тонна'
-        table_name_search_result = frame.iloc[:, 0] == table_name
-        return table_name_search_result.argmax() + 1 + HEADERS_OFFSET # type: ignore
-    
-
-    def _drop_nan_contracts(self, frame: pd.DataFrame) -> pd.DataFrame:
-        return frame[frame.iloc[:, -1].notna()]
     
 
     def _parse_date_from_path(self, path: str) -> datetime.date:

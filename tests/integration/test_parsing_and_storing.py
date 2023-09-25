@@ -9,7 +9,7 @@ from spimex_parser.modules.parser import unit_of_work as parser_unit_of_work
 def test__parse_and_add_trading_results(engine: sqlalchemy.engine.Engine) -> None:
     url = 'https://spimex.com/upload/reports/oil_xls/oil_xls_20230921162000.xls'
     with parser_unit_of_work.PandasSpimexTradingResultsUnitOfWork(url) as uow:
-        trading_results = list(uow.data)
+        trading_results = uow.data.list()
 
     with data_unit_of_work.SqlAlchemyTradingResultsUnitOfWork(engine) as uow:
         assert not uow.data.list()
