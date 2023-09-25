@@ -10,11 +10,18 @@ from spimex_parser.domain import models
 
 
 class TradingResultsRepository:
+    """Репозиторий хранилища данных о результатах торгов со Spimex"""
     def get(self, trading_result_id: uuid.UUID) -> Optional[models.TradingResult]:
+        """Возвращает данных о результате торгов с указанным id
+        
+        Возвращает данных о результате торгов с указанным id или None в случае,
+        если записи с таким id не существует
+        """
         raise NotImplementedError()
     
 
     def add(self, trading_result: models.TradingResult) -> models.TradingResult:
+        """Добавляет данные о результатах сделки в репозиторий"""
         raise NotImplementedError()
     
 
@@ -22,6 +29,7 @@ class TradingResultsRepository:
         self,
         trading_results: Iterable[models.TradingResult],
     ) -> List[models.TradingResult]:
+        """Добавляет список данных о результатах торгов в репозиторий"""
         raise NotImplementedError()
     
 
@@ -30,6 +38,7 @@ class TradingResultsRepository:
 
 
 class SqlAlchemyTradingResultRepository(TradingResultsRepository):
+    """Репозиторий SQL хранилища данных о результатах торгов со Spimex"""
     session: sqlalchemy.orm.Session
 
 
@@ -38,6 +47,11 @@ class SqlAlchemyTradingResultRepository(TradingResultsRepository):
 
 
     def get(self, trading_result_id: uuid.UUID) -> Optional[models.TradingResult]:
+        """Возвращает данных о результате торгов с указанным id
+        
+        Возвращает данных о результате торгов с указанным id или None в случае,
+        если записи с таким id не существует
+        """
         record = self.session.get(db_models.TradingResult, trading_result_id)
 
         if record is None:
@@ -47,6 +61,7 @@ class SqlAlchemyTradingResultRepository(TradingResultsRepository):
     
 
     def add(self, trading_result: models.TradingResult) -> models.TradingResult:
+        """Добавляет данные о результатах сделки в репозиторий"""
         if trading_result.id is not None:
             raise ValueError('You are not allowed to specify record ID manually')
         
@@ -61,6 +76,7 @@ class SqlAlchemyTradingResultRepository(TradingResultsRepository):
         self,
         trading_results: Iterable[models.TradingResult],
     ) -> List[models.TradingResult]:
+        """Добавляет список данных о результатах торгов в репозиторий"""
         added_results: List[models.TradingResult] = []
 
         for trading_result in trading_results:
@@ -74,6 +90,7 @@ class SqlAlchemyTradingResultRepository(TradingResultsRepository):
         self,
         trading_result: models.TradingResult,
     ) -> db_models.TradingResult:
+        """Преобразует доменную модель данных в формат модели базы данных"""
         return db_models.TradingResult(
             id=trading_result.id,
             exchange_product_id=trading_result.exchange_product_id,

@@ -6,11 +6,18 @@ from spimex_parser.modules.parser import data_table
 
 
 class SpimexTradingResultsRepository:
+    """Репозиторий данных о результатах торгов со Spimex"""
     def list(self) -> List[models.TradingResult]:
+        """Возвращает список данных о результатах торгов"""
         raise NotImplementedError()
 
 
 class TableSpimexTradingResultsRepository(SpimexTradingResultsRepository):
+    """Репозиторий данных о результатах торгов со Spimex
+    
+    Репозиторий данных о результатах торгов со Spimex, полученных в виде
+    TradingResultsDataTable класса
+    """
     results_data_table: data_table.TradingResultsDataTable
     date: datetime.date
 
@@ -25,4 +32,5 @@ class TableSpimexTradingResultsRepository(SpimexTradingResultsRepository):
 
 
     def list(self) -> List[models.TradingResult]:
+        """Возвращает список данных о результатах торгов"""
         return self.results_data_table.list_results()

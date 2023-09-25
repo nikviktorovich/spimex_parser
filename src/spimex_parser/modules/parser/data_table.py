@@ -10,6 +10,7 @@ from spimex_parser.domain import models
 class TradingResultsDataTable:
     """Таблица данных о результатах торгов"""
     def list_results(self) -> List[models.TradingResult]:
+        """Возвращает список результатов торгов"""
         raise NotImplementedError()
 
 
@@ -29,6 +30,11 @@ class PandasTradingResultsDataTable(TradingResultsDataTable):
     
 
     def _extract_table(self, frame: pd.DataFrame) -> pd.DataFrame:
+        """Извлекает таблицу из оригинального формата данных
+        
+        Извлекает таблицу с единицами измерения в метрических тоннах,
+        попутно убирая все лишнее, включая строки с пустым числом контрактов
+        """
         frame = self._skip_empty_column(frame)
         frame = self._extract_table_rows(frame)
         frame = self._drop_nan_contracts(frame)
@@ -36,10 +42,12 @@ class PandasTradingResultsDataTable(TradingResultsDataTable):
     
 
     def _skip_empty_column(self, frame: pd.DataFrame) -> pd.DataFrame:
+        """Избавляется от пустого столбца слева"""
         return frame.iloc[:, 1:]
     
 
     def _extract_table_rows(self, frame: pd.DataFrame) -> pd.DataFrame:
+        """Извлекает строки нужной таблицы"""
         table_start_index = self._find_table_start_index(frame)
         top_stripped_frame = frame.iloc[table_start_index:]
 
@@ -50,6 +58,7 @@ class PandasTradingResultsDataTable(TradingResultsDataTable):
     
 
     def _find_table_start_index(self, frame: pd.DataFrame) -> int:
+        """Извлекает индекс строки начала нужной таблицы"""
         HEADERS_OFFSET = 2
         TABLE_NAME = 'Единица измерения: Метрическая тонна'
         table_name_search_result = frame.iloc[:, 0] == TABLE_NAME
@@ -58,29 +67,22 @@ class PandasTradingResultsDataTable(TradingResultsDataTable):
     
 
     def _find_table_end_index(self, frame: pd.DataFrame) -> int:
+        """Извлекает индекс строки конца нужной таблицы"""
         SUMMARY_CELL_NAME = 'Итого:'
         summary_row_search_result = frame.iloc[:, 0] == SUMMARY_CELL_NAME
         summary_row_row_index = int(summary_row_search_result.argmax())
         return summary_row_row_index
     
 
-    def _find_last_occurence_index(
-        self,
-        frame: pd.DataFrame,
-        mask: pd.Series,
-    ) -> int:
-        occurence_r_index = int(mask.iloc[::-1].argmax())
-        rows_count = frame.shape[0]
-        return rows_count - occurence_r_index - 1
-    
-
     def _drop_nan_contracts(self, frame: pd.DataFrame) -> pd.DataFrame:
+        """Избавляется от строк с пустым числом контрактов"""
         CONTRACTS_COL_INDEX = -1
         non_empty_contracts_mask = frame.iloc[:, CONTRACTS_COL_INDEX].notna()
         return frame[non_empty_contracts_mask]
 
 
     def list_results(self) -> List[models.TradingResult]:
+        """Возвращает список результатов торгов"""
         results: List[models.TradingResult] = []
 
         for row in self.frame.itertuples():
@@ -91,6 +93,7 @@ class PandasTradingResultsDataTable(TradingResultsDataTable):
     
 
     def _parse_row(self, row: NamedTuple) -> models.TradingResult:
+        """Приводит строку столбца данных в необходимый вид"""
         current_datetime = datetime.datetime.now()
         exchange_product_id = row[1]
         oil_trading_record = models.TradingResult(

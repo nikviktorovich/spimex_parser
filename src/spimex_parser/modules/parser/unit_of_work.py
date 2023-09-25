@@ -9,6 +9,7 @@ from spimex_parser.modules.parser import repositories
 
 
 class SpimexTradingResultsUnitOfWork:
+    """Единица работы с данными о результатах торгов со Spimex"""
     data: repositories.SpimexTradingResultsRepository
 
     def __enter__(self) -> 'SpimexTradingResultsUnitOfWork':
@@ -20,6 +21,11 @@ class SpimexTradingResultsUnitOfWork:
 
 
 class PandasSpimexTradingResultsUnitOfWork(SpimexTradingResultsUnitOfWork):
+    """Единица работы с данными о результатах торгов со Spimex
+    
+    Единица работы с данными о результатах торгов со Spimex, полученных
+    в виде excel-таблицы
+    """
     def __init__(self, oil_data_path: str) -> None:
         self.oil_data_path = oil_data_path
 
@@ -36,18 +42,21 @@ class PandasSpimexTradingResultsUnitOfWork(SpimexTradingResultsUnitOfWork):
     
 
     def _parse_date_from_path(self, path: str) -> datetime.date:
+        """Извлекает дату из пути к файлу данных"""
         file_name = self._parse_file_name_from_path(path)
         file_date_time = self._parse_datetime_from_file_name(file_name)
         return file_date_time.date()
     
 
     def _parse_file_name_from_path(self, path: str) -> str:
+        """Извлекает название файла из пути"""
         relative_path = urllib.parse.urlparse(path).path
         file_name = os.path.split(relative_path)[-1]
         return file_name
     
 
     def _parse_datetime_from_file_name(self, file_name: str) -> datetime.datetime:
+        """Извлекает дату из названия файла"""
         DATETIME_FORMAT = '%Y%m%d%H%M%S'
         file_name_without_extension = os.path.splitext(file_name)[0]
         timestamp = file_name_without_extension.split('_')[-1]
