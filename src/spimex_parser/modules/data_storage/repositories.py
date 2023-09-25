@@ -1,5 +1,4 @@
 import uuid
-from collections.abc import Iterable
 from typing import List
 from typing import Optional
 
@@ -27,7 +26,7 @@ class TradingResultsRepository:
 
     def add_bulk(
         self,
-        trading_results: Iterable[models.TradingResult],
+        trading_results: List[models.TradingResult],
     ) -> List[models.TradingResult]:
         """Добавляет список данных о результатах торгов в репозиторий"""
         raise NotImplementedError()
@@ -74,14 +73,22 @@ class SqlAlchemyTradingResultRepository(TradingResultsRepository):
 
     def add_bulk(
         self,
-        trading_results: Iterable[models.TradingResult],
+        trading_results: List[models.TradingResult],
     ) -> List[models.TradingResult]:
         """Добавляет список данных о результатах торгов в репозиторий"""
-        added_results: List[models.TradingResult] = []
+        if any(res for res in trading_results if res.id is not None):
+            raise ValueError('You are not allowed to specify record ID manually')
+        
+        db_trading_results: List[db_models.TradingResult] = []
 
         for trading_result in trading_results:
-            added_result = self.add(trading_result)
-            added_results.append(added_result)
+            db_trading_result = self._from_domain_model(trading_result)
+            db_trading_result.id = uuid.uuid4()
+            db_trading_results.append(db_trading_result)
+
+        self.session.add_all(db_trading_results)
+
+        added_results = [self._to_domain_model(res) for res in db_trading_results]
 
         return added_results
     
