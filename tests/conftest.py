@@ -9,7 +9,7 @@ import sqlalchemy.engine
 import sqlalchemy.orm
 
 from spimex_parser import config
-from spimex_parser.modules.data_storage.database import models as db_models
+from spimex_parser.database import models as db_models
 
 
 @pytest.fixture

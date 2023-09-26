@@ -1,7 +1,7 @@
 import sqlalchemy.ext.asyncio
 
 from spimex_parser import config
-from spimex_parser.modules.data_storage.database import models as db_models
+from spimex_parser.database import models as db_models
 
 
 engine = sqlalchemy.ext.asyncio.create_async_engine(config.ASYNC_DB_CONNECTION_URL)

@@ -5,7 +5,7 @@ from typing import Optional
 import sqlalchemy.ext.asyncio
 from sqlalchemy import select
 
-from spimex_parser.modules.data_storage.database import models as db_models
+from spimex_parser.database import models as db_models
 from spimex_parser.domain import models
 
 
