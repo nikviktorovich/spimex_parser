@@ -1,19 +1,28 @@
 aiohttp==3.8.5
 aiohttp-retry==2.8.3
 aiosignal==1.3.1
+alembic==1.12.0
+annotated-types==0.5.0
+anyio==3.7.1
 asttokens==2.4.0
 async-timeout==4.0.3
 asyncpg==0.28.0
 attrs==23.1.0
 backcall==0.2.0
+certifi==2023.7.22
 charset-normalizer==3.2.0
+click==8.1.7
 comm==0.1.4
 debugpy==1.8.0
 decorator==5.1.1
 exceptiongroup==1.1.3
 executing==1.2.0
+fastapi==0.103.1
 frozenlist==1.4.0
 greenlet==2.0.2
+h11==0.14.0
+httpcore==0.18.0
+httpx==0.25.0
 idna==3.4
 iniconfig==2.0.0
 ipykernel==6.25.2
@@ -21,6 +30,8 @@ ipython==8.15.0
 jedi==0.19.0
 jupyter_client==8.3.1
 jupyter_core==5.3.1
+Mako==1.2.4
+MarkupSafe==2.1.3
 matplotlib-inline==0.1.6
 multidict==6.0.4
 nest-asyncio==1.5.8
@@ -37,6 +48,8 @@ psutil==5.9.5
 psycopg2-binary==2.9.7
 ptyprocess==0.7.0
 pure-eval==0.2.2
+pydantic==2.4.0
+pydantic_core==2.10.0
 Pygments==2.16.1
 pytest==7.4.2
 pytest-asyncio==0.21.1
@@ -45,14 +58,17 @@ python-dotenv==1.0.0
 pytz==2023.3.post1
 pyzmq==25.1.1
 six==1.16.0
--e ./src
+sniffio==1.3.0
+-e git+https://github.com/nikviktorovich/spimex_parser.git@b4bef9925296bf850cdec6a12b68f75b43c28a49#egg=spimex_parser&subdirectory=src
 SQLAlchemy==2.0.21
 stack-data==0.6.2
+starlette==0.27.0
 tomli==2.0.1
 tornado==6.3.3
 traitlets==5.10.0
 typing_extensions==4.8.0
 tzdata==2023.3
+uvicorn==0.23.2
 wcwidth==0.2.6
 xlrd==2.0.1
 yarl==1.9.2
