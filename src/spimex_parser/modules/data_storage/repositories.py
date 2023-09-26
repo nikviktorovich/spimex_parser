@@ -6,6 +6,7 @@ import sqlalchemy.orm
 
 from spimex_parser.database import models as db_models
 from spimex_parser.domain import models
+from spimex_parser.modules.data_storage import filters
 
 
 class TradingResultsRepository:
@@ -33,6 +34,13 @@ class TradingResultsRepository:
     
 
     def list(self) -> List[models.TradingResult]:
+        raise NotImplementedError()
+    
+
+    def filter(
+        self,
+        result_filter: filters.TradingResultFilter,
+    ) -> List[models.TradingResult]:
         raise NotImplementedError()
 
 
@@ -139,3 +147,36 @@ class SqlAlchemyTradingResultRepository(TradingResultsRepository):
             created_on=trading_result.created_on,
             updated_on=trading_result.updated_on,
         )
+    
+
+    def filter(
+        self,
+        result_filter: filters.TradingResultFilter,
+    ) -> List[models.TradingResult]:
+        query = self.session.query(db_models.TradingResult)
+
+        if result_filter.oil_id is not None:
+            query = query.filter_by(oil_id=result_filter.oil_id)
+        
+        if result_filter.delivery_type_id is not None:
+            query = query.filter_by(
+                delivery_type_id=result_filter.delivery_type_id,
+            )
+        
+        if result_filter.delivery_basis_id is not None:
+            query = query.filter_by(
+                delivery_basis_id=result_filter.delivery_basis_id,
+            )
+        
+        if result_filter.start_date is not None:
+            query = query.filter(
+                db_models.TradingResult.date >= result_filter.start_date,
+            )
+        
+        if result_filter.end_date is not None:
+            query = query.filter(
+                db_models.TradingResult.date <= result_filter.end_date,
+            )
+
+        db_trading_results = query.all()
+        return [self._to_domain_model(res) for res in db_trading_results]
