@@ -1,11 +1,11 @@
 import datetime
 import urllib.error
-from typing import Generator
 from typing import List
 
 from spimex_parser.apps.console import database
 from spimex_parser.apps.console import deps
 from spimex_parser.domain import models
+from spimex_parser.modules import datetime_util
 
 
 def main() -> None:
@@ -13,24 +13,13 @@ def main() -> None:
 
     start_date = datetime.datetime(year=2023, month=1, day=1, hour=16, minute=20)
     end_date = datetime.datetime(year=2024, month=1, day=1, hour=16, minute=20)
+    datetime_iterable = datetime_util.datetime_range(start_date, end_date)
 
-    for current_date in datetime_range(start_date, end_date):
+    for current_date in datetime_iterable:
         try:
             add_results_from_specified_date_to_database(current_date)
         except urllib.error.HTTPError as e:
             print(f'Parsing error: "{str(e)}" (requested date: {current_date})')
-
-
-def datetime_range(
-    start: datetime.datetime,
-    end: datetime.datetime,
-) -> Generator[datetime.datetime, None, None]:
-    """Генерирует последовательные даты в указанном диапазоне"""
-    current_date = start
-
-    while current_date < end:
-        yield current_date
-        current_date += datetime.timedelta(days=1)
 
 
 def add_results_from_specified_date_to_database(date: datetime.datetime) -> None:
