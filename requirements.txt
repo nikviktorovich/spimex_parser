@@ -1,4 +1,5 @@
 aiohttp==3.8.5
+aiohttp-retry==2.8.3
 aiosignal==1.3.1
 asttokens==2.4.0
 async-timeout==4.0.3
@@ -44,7 +45,7 @@ python-dotenv==1.0.0
 pytz==2023.3.post1
 pyzmq==25.1.1
 six==1.16.0
--e git+https://github.com/nikviktorovich/spimex_parser.git@88158734555fa5fd3c6b57ea6642cc85c9370351#egg=spimex_parser&subdirectory=src
+-e ./src
 SQLAlchemy==2.0.21
 stack-data==0.6.2
 tomli==2.0.1
