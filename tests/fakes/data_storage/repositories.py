@@ -52,17 +52,30 @@ class AsyncFakeTradingResultsRepository(repositories.AsyncTradingResultsReposito
         return trading_results
     
 
-    async def list(self) -> List[models.TradingResult]:
-        return list(self._data.values())
+    async def list(
+        self,
+        order_by: Optional[str] = None,
+        ascending: bool = True,
+    ) -> List[models.TradingResult]:
+        trading_results = list(self._data.values())
+
+        if order_by is not None:
+            sorting_key = lambda item: getattr(item, order_by)
+            trading_results.sort(key=sorting_key, reverse=not ascending)
+
+        return trading_results
     
 
     async def filter(
         self,
         result_filter: filters.TradingResultFilter,
+        order_by: Optional[str] = None,
+        ascending: bool = True,
     ) -> List[models.TradingResult]:
+        trading_results = await self.list(order_by=order_by, ascending=ascending)
         filtered_results: List[models.TradingResult] = []
 
-        for trading_result in self._data.values():
+        for trading_result in trading_results:
             if self._matches_filter(trading_result, result_filter):
                 filtered_results.append(trading_result)
         

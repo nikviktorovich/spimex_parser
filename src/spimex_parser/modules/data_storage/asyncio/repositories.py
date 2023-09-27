@@ -4,6 +4,8 @@ from typing import Optional
 
 import sqlalchemy.ext.asyncio
 from sqlalchemy import select
+from sqlalchemy import asc
+from sqlalchemy import desc
 
 from spimex_parser.database import models as db_models
 from spimex_parser.domain import models
@@ -36,13 +38,19 @@ class AsyncTradingResultsRepository:
         raise NotImplementedError()
     
 
-    async def list(self) -> List[models.TradingResult]:
+    async def list(
+        self,
+        order_by: Optional[str] = None,
+        ascending: bool = True,
+    ) -> List[models.TradingResult]:
         raise NotImplementedError()
     
 
     async def filter(
         self,
         result_filter: filters.TradingResultFilter,
+        order_by: Optional[str] = None,
+        ascending: bool = True,
     ) -> List[models.TradingResult]:
         raise NotImplementedError()
 
@@ -128,8 +136,17 @@ class AsyncSqlAlchemyTradingResultRepository(AsyncTradingResultsRepository):
         )
     
 
-    async def list(self) -> List[models.TradingResult]:
+    async def list(
+        self,
+        order_by: Optional[str] = None,
+        ascending: bool = True,
+    ) -> List[models.TradingResult]:
         query = select(db_models.TradingResult)
+
+        if order_by is not None:
+            order = asc(order_by) if ascending is True else desc(order_by)
+            query = query.order_by(order)
+
         query_result = await self.session.execute(query)
         db_trading_results = query_result.scalars().all()
         return [self._to_domain_model(res) for res in db_trading_results]
@@ -159,6 +176,8 @@ class AsyncSqlAlchemyTradingResultRepository(AsyncTradingResultsRepository):
     async def filter(
         self,
         result_filter: filters.TradingResultFilter,
+        order_by: Optional[str] = None,
+        ascending: bool = True,
     ) -> List[models.TradingResult]:
         query = select(db_models.TradingResult)
 
@@ -184,6 +203,10 @@ class AsyncSqlAlchemyTradingResultRepository(AsyncTradingResultsRepository):
             query = query.filter(
                 db_models.TradingResult.date <= result_filter.end_date,
             )
+        
+        if order_by is not None:
+            order = asc(order_by) if ascending is True else desc(order_by)
+            query = query.order_by(order)
 
         query_result = await self.session.execute(query)
         db_trading_results = query_result.scalars().all()

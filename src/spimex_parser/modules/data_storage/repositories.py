@@ -3,6 +3,8 @@ from typing import List
 from typing import Optional
 
 import sqlalchemy.orm
+from sqlalchemy import asc
+from sqlalchemy import desc
 
 from spimex_parser.database import models as db_models
 from spimex_parser.domain import models
@@ -33,13 +35,19 @@ class TradingResultsRepository:
         raise NotImplementedError()
     
 
-    def list(self) -> List[models.TradingResult]:
+    def list(
+        self,
+        order_by: Optional[str] = None,
+        ascending: bool = True,
+    ) -> List[models.TradingResult]:
         raise NotImplementedError()
     
 
     def filter(
         self,
         result_filter: filters.TradingResultFilter,
+        order_by: Optional[str] = None,
+        ascending: bool = True,
     ) -> List[models.TradingResult]:
         raise NotImplementedError()
 
@@ -123,8 +131,18 @@ class SqlAlchemyTradingResultRepository(TradingResultsRepository):
         )
     
 
-    def list(self) -> List[models.TradingResult]:
-        db_trading_results = self.session.query(db_models.TradingResult).all()
+    def list(
+        self,
+        order_by: Optional[str] = None,
+        ascending: bool = True,
+    ) -> List[models.TradingResult]:
+        query = self.session.query(db_models.TradingResult)
+
+        if order_by is not None:
+            order = asc(order_by) if ascending is True else desc(order_by)
+            query = query.order_by(order)
+
+        db_trading_results = query.all()
         return [self._to_domain_model(res) for res in db_trading_results]
     
 
@@ -152,6 +170,8 @@ class SqlAlchemyTradingResultRepository(TradingResultsRepository):
     def filter(
         self,
         result_filter: filters.TradingResultFilter,
+        order_by: Optional[str] = None,
+        ascending: bool = True,
     ) -> List[models.TradingResult]:
         query = self.session.query(db_models.TradingResult)
 
@@ -177,6 +197,10 @@ class SqlAlchemyTradingResultRepository(TradingResultsRepository):
             query = query.filter(
                 db_models.TradingResult.date <= result_filter.end_date,
             )
+        
+        if order_by is not None:
+            order = asc(order_by) if ascending is True else desc(order_by)
+            query = query.order_by(order)
 
         db_trading_results = query.all()
         return [self._to_domain_model(res) for res in db_trading_results]
