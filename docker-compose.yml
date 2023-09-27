@@ -16,6 +16,12 @@ services:
       interval: 3s
       timeout: 3s
       retries: 5
+  
+  redis:
+    image: redis:7.2.1
+    restart: always
+    ports:
+      - 6379:6379
 
   spimex_parser_app:
     container_name: spimex_parser_app
@@ -27,6 +33,7 @@ services:
       - DB_PASS=${DB_PASS}
       - DB_HOST=postgres
       - DB_PORT=5432
+      - REDIS_HOST=redis
     build: .
     depends_on:
       postgres:

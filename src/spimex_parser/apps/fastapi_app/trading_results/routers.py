@@ -2,6 +2,7 @@ from typing import List
 from typing import Optional
 
 import fastapi
+import fastapi_cache.decorator
 from fastapi import Depends
 
 from spimex_parser.apps.fastapi_app import deps
@@ -17,6 +18,7 @@ router = fastapi.APIRouter(
 
 
 @router.get('/', response_model=List[serializers.TradingResultRead])
+@fastapi_cache.decorator.cache()
 async def list_trading_results(
     uow: unit_of_work.AsyncTradingResultsUnitOfWork = Depends(deps.get_uow),
     oil_id: Optional[str] = None,
