@@ -13,6 +13,7 @@ sample_urls = [
 ]
 
 
+@pytest.mark.skip(reason='Нестабильная загрузка с сайта')
 def test_loading_from_url() -> None:
     for url in sample_urls:
         trading_results = get_trading_results_sync(url)
@@ -25,6 +26,7 @@ def get_trading_results_sync(url: str) -> List[models.TradingResult]:
         return trading_results
 
 
+@pytest.mark.skip(reason='Нестабильная загрузка с сайта')
 @pytest.mark.usefixtures('async_client')
 @pytest.mark.asyncio
 async def test_async_loading_from_url(async_client: aiohttp.ClientSession) -> None:
@@ -42,6 +44,7 @@ async def get_trading_results_async(
         return trading_results
 
 
+@pytest.mark.skip(reason='Нестабильная загрузка с сайта')
 @pytest.mark.usefixtures('async_client')
 @pytest.mark.asyncio
 async def test_sync_and_async_loading_and_compare(

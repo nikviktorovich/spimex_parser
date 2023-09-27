@@ -5,6 +5,7 @@ from spimex_parser.modules.data_storage import unit_of_work as data_unit_of_work
 from spimex_parser.modules.parser import unit_of_work as parser_unit_of_work
 
 
+@pytest.mark.skip(reason='Нестабильная загрузка с сайта')
 @pytest.mark.usefixtures('engine')
 def test__parse_and_add_trading_results(engine: sqlalchemy.engine.Engine) -> None:
     url = 'https://spimex.com/upload/reports/oil_xls/oil_xls_20230921162000.xls'
