@@ -39,6 +39,11 @@ python src/spimex_parser/apps/console/main.py
 python src/spimex_parser/apps/console_async/main.py
 ```
 
+FastAPI:
+```bash
+docker compose --env-file .env up --build --abort-on-container-exit
+```
+
 ## Структура файлов
 В корневом каталоге лежат файлы, имеющие отношение к окружению приложения и репозитория.
 
