@@ -33,7 +33,7 @@ async def list_dynamics(
         start_date=start_date,
         end_date=end_date,
     )
-    filtered_trading_results = await uow.data.filter(result_filter)
+    filtered_trading_results = await uow.data.list(result_filter)
     
     serialized_results: List[serializers.DynamicsRead] = []
     for trading_result in filtered_trading_results:

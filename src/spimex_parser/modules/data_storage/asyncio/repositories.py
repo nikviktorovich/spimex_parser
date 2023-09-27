@@ -1,7 +1,9 @@
 import uuid
 from typing import List
 from typing import Optional
+from typing import Tuple
 
+import sqlalchemy
 import sqlalchemy.ext.asyncio
 from sqlalchemy import select
 from sqlalchemy import asc
@@ -40,17 +42,11 @@ class AsyncTradingResultsRepository:
 
     async def list(
         self,
+        result_filter: Optional[filters.TradingResultFilter] = None,
+        group_by: Optional[str] = None,
         order_by: Optional[str] = None,
         ascending: bool = True,
-    ) -> List[models.TradingResult]:
-        raise NotImplementedError()
-    
-
-    async def filter(
-        self,
-        result_filter: filters.TradingResultFilter,
-        order_by: Optional[str] = None,
-        ascending: bool = True,
+        limit: Optional[int] = None,
     ) -> List[models.TradingResult]:
         raise NotImplementedError()
 
@@ -138,49 +134,40 @@ class AsyncSqlAlchemyTradingResultRepository(AsyncTradingResultsRepository):
 
     async def list(
         self,
+        result_filter: Optional[filters.TradingResultFilter] = None,
+        group_by: Optional[str] = None,
         order_by: Optional[str] = None,
         ascending: bool = True,
+        limit: Optional[int] = None,
     ) -> List[models.TradingResult]:
         query = select(db_models.TradingResult)
 
+        if result_filter is not None:
+            query = self._filter_query(query, result_filter=result_filter)
+        
+        if group_by is not None:
+            query = self._group_query(query, group_by=group_by)
+
         if order_by is not None:
-            order = asc(order_by) if ascending is True else desc(order_by)
-            query = query.order_by(order)
+            query = self._order_query(
+                query,
+                order_by=order_by,
+                ascending=ascending,
+            )
+        
+        if limit is not None:
+            query = self._limit_query(query, limit)
 
         query_result = await self.session.execute(query)
         db_trading_results = query_result.scalars().all()
         return [self._to_domain_model(res) for res in db_trading_results]
     
 
-    def _to_domain_model(
+    def _filter_query(
         self,
-        trading_result: db_models.TradingResult,
-    ) -> models.TradingResult:
-        return models.TradingResult(
-            id=trading_result.id,
-            exchange_product_id=trading_result.exchange_product_id,
-            exchange_product_name=trading_result.exchange_product_name,
-            oil_id=trading_result.oil_id,
-            delivery_basis_id=trading_result.delivery_basis_id,
-            delivery_basis_name=trading_result.delivery_basis_name,
-            delivery_type_id=trading_result.delivery_type_id,
-            volume=trading_result.volume,
-            total=trading_result.total,
-            count=trading_result.count,
-            date=trading_result.date,
-            created_on=trading_result.created_on,
-            updated_on=trading_result.updated_on,
-        )
-    
-
-    async def filter(
-        self,
+        query: sqlalchemy.Select[Tuple[db_models.TradingResult]],
         result_filter: filters.TradingResultFilter,
-        order_by: Optional[str] = None,
-        ascending: bool = True,
-    ) -> List[models.TradingResult]:
-        query = select(db_models.TradingResult)
-
+    ) -> sqlalchemy.Select[Tuple[db_models.TradingResult]]:
         if result_filter.oil_id is not None:
             query = query.filter_by(oil_id=result_filter.oil_id)
         
@@ -204,10 +191,51 @@ class AsyncSqlAlchemyTradingResultRepository(AsyncTradingResultsRepository):
                 db_models.TradingResult.date <= result_filter.end_date,
             )
         
-        if order_by is not None:
-            order = asc(order_by) if ascending is True else desc(order_by)
-            query = query.order_by(order)
+        return query
+    
 
-        query_result = await self.session.execute(query)
-        db_trading_results = query_result.scalars().all()
-        return [self._to_domain_model(res) for res in db_trading_results]
+    def _group_query(
+        self,
+        query: sqlalchemy.Select[Tuple[db_models.TradingResult]],
+        group_by: str,
+    ) -> sqlalchemy.Select[Tuple[db_models.TradingResult]]:
+        return query.group_by(group_by)
+
+
+    def _order_query(
+        self,
+        query: sqlalchemy.Select[Tuple[db_models.TradingResult]],
+        order_by: str,
+        ascending: bool,
+    ) -> sqlalchemy.Select[Tuple[db_models.TradingResult]]:
+        order = asc(order_by) if ascending is True else desc(order_by)
+        return query.order_by(order)
+    
+
+    def _limit_query(
+        self,
+        query: sqlalchemy.Select[Tuple[db_models.TradingResult]],
+        limit: int,
+    ) -> sqlalchemy.Select[Tuple[db_models.TradingResult]]:
+        return query.limit(limit)
+    
+
+    def _to_domain_model(
+        self,
+        trading_result: db_models.TradingResult,
+    ) -> models.TradingResult:
+        return models.TradingResult(
+            id=trading_result.id,
+            exchange_product_id=trading_result.exchange_product_id,
+            exchange_product_name=trading_result.exchange_product_name,
+            oil_id=trading_result.oil_id,
+            delivery_basis_id=trading_result.delivery_basis_id,
+            delivery_basis_name=trading_result.delivery_basis_name,
+            delivery_type_id=trading_result.delivery_type_id,
+            volume=trading_result.volume,
+            total=trading_result.total,
+            count=trading_result.count,
+            date=trading_result.date,
+            created_on=trading_result.created_on,
+            updated_on=trading_result.updated_on,
+        )

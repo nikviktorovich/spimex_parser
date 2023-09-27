@@ -32,8 +32,8 @@ def test_filter_by_oil_id(engine: sqlalchemy.engine.Engine) -> None:
         uow.data.add(trading_result=trading_result)
         uow.commit()
 
-        assert uow.data.filter(filters.TradingResultFilter(oil_id='A100'))
-        assert not uow.data.filter(filters.TradingResultFilter(oil_id='A200'))
+        assert uow.data.list(filters.TradingResultFilter(oil_id='A100'))
+        assert not uow.data.list(filters.TradingResultFilter(oil_id='A200'))
 
 
 @pytest.mark.usefixtures('engine')
@@ -43,8 +43,8 @@ def test_filter_by_delivery_type_id(engine: sqlalchemy.engine.Engine) -> None:
         uow.data.add(trading_result=trading_result)
         uow.commit()
 
-        assert uow.data.filter(filters.TradingResultFilter(delivery_type_id='F'))
-        assert not uow.data.filter(filters.TradingResultFilter(delivery_type_id='T'))
+        assert uow.data.list(filters.TradingResultFilter(delivery_type_id='F'))
+        assert not uow.data.list(filters.TradingResultFilter(delivery_type_id='T'))
 
 
 @pytest.mark.usefixtures('engine')
@@ -54,8 +54,8 @@ def test_filter_by_delivery_basis_id(engine: sqlalchemy.engine.Engine) -> None:
         uow.data.add(trading_result=trading_result)
         uow.commit()
 
-        assert uow.data.filter(filters.TradingResultFilter(delivery_basis_id='NVY'))
-        assert not uow.data.filter(filters.TradingResultFilter(delivery_basis_id='NBA'))
+        assert uow.data.list(filters.TradingResultFilter(delivery_basis_id='NVY'))
+        assert not uow.data.list(filters.TradingResultFilter(delivery_basis_id='NBA'))
 
 
 @pytest.mark.usefixtures('engine')
@@ -66,10 +66,10 @@ def test_filter_by_start_date(engine: sqlalchemy.engine.Engine) -> None:
         uow.commit()
 
         start_date = datetime.date(year=2023, month=9, day=1)
-        assert uow.data.filter(filters.TradingResultFilter(start_date=start_date))
+        assert uow.data.list(filters.TradingResultFilter(start_date=start_date))
 
         start_date = datetime.date(year=2023, month=9, day=30)
-        assert not uow.data.filter(filters.TradingResultFilter(start_date=start_date))
+        assert not uow.data.list(filters.TradingResultFilter(start_date=start_date))
 
 
 @pytest.mark.usefixtures('engine')
@@ -80,10 +80,10 @@ def test_filter_by_end_date(engine: sqlalchemy.engine.Engine) -> None:
         uow.commit()
 
         end_date = datetime.date(year=2023, month=9, day=30)
-        assert uow.data.filter(filters.TradingResultFilter(end_date=end_date))
+        assert uow.data.list(filters.TradingResultFilter(end_date=end_date))
 
         end_date = datetime.date(year=2023, month=9, day=1)
-        assert not uow.data.filter(filters.TradingResultFilter(end_date=end_date))
+        assert not uow.data.list(filters.TradingResultFilter(end_date=end_date))
 
 
 @pytest.mark.usefixtures('engine')
@@ -99,7 +99,7 @@ def test_filter_by_date_range(engine: sqlalchemy.engine.Engine) -> None:
             start_date=start_date,
             end_date=end_date,
         )
-        assert uow.data.filter(result_filter)
+        assert uow.data.list(result_filter)
 
         start_date = datetime.date(year=2023, month=9, day=23)
         end_date = datetime.date(year=2023, month=9, day=30)
@@ -107,7 +107,7 @@ def test_filter_by_date_range(engine: sqlalchemy.engine.Engine) -> None:
             start_date=start_date,
             end_date=end_date,
         )
-        assert not uow.data.filter(result_filter)
+        assert not uow.data.list(result_filter)
 
         start_date = datetime.date(year=2023, month=9, day=1)
         end_date = datetime.date(year=2023, month=9, day=20)
@@ -115,4 +115,4 @@ def test_filter_by_date_range(engine: sqlalchemy.engine.Engine) -> None:
             start_date=start_date,
             end_date=end_date,
         )
-        assert not uow.data.filter(result_filter)
+        assert not uow.data.list(result_filter)

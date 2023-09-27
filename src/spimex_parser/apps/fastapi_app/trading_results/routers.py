@@ -28,7 +28,7 @@ async def list_trading_results(
         delivery_type_id=delivery_type_id,
         delivery_basis_id=delivery_basis_id,
     )
-    filtered_trading_results = await uow.data.filter(
+    filtered_trading_results = await uow.data.list(
         result_filter,
         order_by='date',
         ascending=False,

@@ -1,7 +1,9 @@
 import uuid
+from typing import Any
 from typing import Dict
 from typing import List
 from typing import Optional
+from typing import Set
 
 from spimex_parser.domain import models
 from spimex_parser.modules.data_storage import filters
@@ -54,25 +56,38 @@ class AsyncFakeTradingResultsRepository(repositories.AsyncTradingResultsReposito
 
     async def list(
         self,
+        result_filter: Optional[filters.TradingResultFilter] = None,
+        group_by: Optional[str] = None,
         order_by: Optional[str] = None,
         ascending: bool = True,
+        limit: Optional[int] = None,
     ) -> List[models.TradingResult]:
         trading_results = list(self._data.values())
 
+        if result_filter is not None:
+            trading_results = self._filter(trading_results, result_filter)
+        
+        if group_by is not None:
+            trading_results = self._group(trading_results, group_by)
+
         if order_by is not None:
-            sorting_key = lambda item: getattr(item, order_by)
-            trading_results.sort(key=sorting_key, reverse=not ascending)
+            trading_results = self._order(
+                trading_results,
+                order_by=order_by,
+                ascending=ascending,
+            )
+        
+        if limit is not None:
+            return self._limit(trading_results, limit)
 
         return trading_results
     
 
-    async def filter(
+    def _filter(
         self,
+        trading_results: List[models.TradingResult],
         result_filter: filters.TradingResultFilter,
-        order_by: Optional[str] = None,
-        ascending: bool = True,
     ) -> List[models.TradingResult]:
-        trading_results = await self.list(order_by=order_by, ascending=ascending)
         filtered_results: List[models.TradingResult] = []
 
         for trading_result in trading_results:
@@ -108,6 +123,44 @@ class AsyncFakeTradingResultsRepository(repositories.AsyncTradingResultsReposito
                 return False
         
         return True
+    
+
+    def _group(
+        self,
+        trading_results: List[models.TradingResult],
+        group_by: str,
+    ) -> List[models.TradingResult]:
+        grouped_results: List[models.TradingResult] = []
+        attribute_values: Set[Any] = set()
+
+        for trading_result in trading_results:
+            attribute_value = getattr(trading_result, group_by)
+
+            if attribute_value in attribute_values:
+                continue
+            
+            attribute_values.add(attribute_value)
+            grouped_results.append(trading_result)
+        
+        return grouped_results
+    
+
+    def _order(
+        self,
+        trading_results: List[models.TradingResult],
+        order_by: str,
+        ascending: bool,
+    ) -> List[models.TradingResult]:
+        sorting_key = lambda item: getattr(item, order_by)
+        return sorted(trading_results, key=sorting_key, reverse=not ascending)
+    
+
+    def _limit(
+        self,
+        trading_results: List[models.TradingResult],
+        limit: int,
+    ) -> List[models.TradingResult]:
+        return trading_results[:limit]
     
 
     def commit(self) -> None:
