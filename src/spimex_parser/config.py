@@ -1,4 +1,3 @@
-import datetime
 import os
 
 from dotenv import load_dotenv
@@ -17,3 +16,4 @@ ASYNC_DB_CONNECTION_URL = f'postgresql+asyncpg://{DB_USER}:{DB_PASS}@{DB_HOST}:{
 
 REDIS_HOST = os.environ['REDIS_HOST']
 REDIS_URL = f'redis://{REDIS_HOST}'
+CACHE_INVALIDATE_TIME = os.environ['CACHE_INVALIDATE_TIME']

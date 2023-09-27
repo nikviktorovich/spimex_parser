@@ -1,3 +1,4 @@
+import asyncio
 import contextlib
 import schedule
 from collections.abc import AsyncIterator
@@ -39,7 +40,16 @@ async def lifespan(app: fastapi.FastAPI) -> AsyncIterator[None]:
         prefix='fastapi-cache',
         key_builder=request_key_builder,
     )
+    schedule.every().day.at(config.CACHE_INVALIDATE_TIME).do(
+        invalidate_cache,
+        redis_instance,
+    )
     yield
+
+
+async def invalidate_cache(redis_instance: redis.asyncio.Redis) -> None:
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(redis_instance.flushall())
 
 
 app = fastapi.FastAPI(lifespan=lifespan)

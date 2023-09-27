@@ -34,6 +34,7 @@ services:
       - DB_HOST=postgres
       - DB_PORT=5432
       - REDIS_HOST=redis
+      - CACHE_INVALIDATE_TIME=${CACHE_INVALIDATE_TIME}
     build: .
     depends_on:
       postgres:
