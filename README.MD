@@ -7,7 +7,7 @@
 
 Загрузить данные репозитория через `git`:
 ```bash
-git clone -b dev-async https://github.com/nikviktorovich/spimex_parser.git
+git clone -b dev-async-fastapi https://github.com/nikviktorovich/spimex_parser.git
 cd spimex_parser
 ```
 
