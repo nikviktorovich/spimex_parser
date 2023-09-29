@@ -1,5 +1,4 @@
 from typing import List
-from typing import Optional
 
 import fastapi
 import fastapi_cache.decorator
@@ -21,14 +20,12 @@ router = fastapi.APIRouter(
 @fastapi_cache.decorator.cache()
 async def list_trading_results(
     uow: unit_of_work.AsyncTradingResultsUnitOfWork = Depends(deps.get_uow),
-    oil_id: Optional[str] = None,
-    delivery_type_id: Optional[str] = None,
-    delivery_basis_id: Optional[str] = None,
+    query_result_filter: schemas.TradingResultFilter = Depends(),
 ):
     result_filter = filters.TradingResultFilter(
-        oil_id=oil_id,
-        delivery_type_id=delivery_type_id,
-        delivery_basis_id=delivery_basis_id,
+        oil_id=query_result_filter.oil_id,
+        delivery_type_id=query_result_filter.delivery_type_id,
+        delivery_basis_id=query_result_filter.delivery_basis_id,
     )
     filtered_trading_results = await uow.data.list(
         result_filter,

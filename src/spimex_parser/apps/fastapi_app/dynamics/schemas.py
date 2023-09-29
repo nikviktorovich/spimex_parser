@@ -1,5 +1,6 @@
 import datetime
 import uuid
+from typing import Optional
 
 import pydantic
 
@@ -23,3 +24,11 @@ class DynamicsRead(DynamicsBase):
     model_config = pydantic.ConfigDict(from_attributes=True)
 
     id: uuid.UUID
+
+
+class DynamicsFilter(pydantic.BaseModel):
+    oil_id: Optional[str] = None
+    delivery_type_id: Optional[str] = None
+    delivery_basis_id: Optional[str] = None
+    start_date: Optional[datetime.date] = None
+    end_date: Optional[datetime.date] = None

@@ -1,10 +1,10 @@
 import datetime
 from typing import List
-from typing import Optional
 
 import fastapi
 import fastapi_cache.decorator
 from fastapi import Depends
+from fastapi import Query
 
 from spimex_parser.apps.fastapi_app import deps
 from spimex_parser.apps.fastapi_app.dynamics import schemas
@@ -22,18 +22,14 @@ router = fastapi.APIRouter(
 @fastapi_cache.decorator.cache()
 async def list_dynamics(
     uow: unit_of_work.AsyncTradingResultsUnitOfWork = Depends(deps.get_uow),
-    oil_id: Optional[str] = None,
-    delivery_type_id: Optional[str] = None,
-    delivery_basis_id: Optional[str] = None,
-    start_date: Optional[datetime.date] = None,
-    end_date: Optional[datetime.date] = None,
+    dynamics_filter: schemas.DynamicsFilter = Depends(),
 ):
     result_filter = filters.TradingResultFilter(
-        oil_id=oil_id,
-        delivery_type_id=delivery_type_id,
-        delivery_basis_id=delivery_basis_id,
-        start_date=start_date,
-        end_date=end_date,
+        oil_id=dynamics_filter.oil_id,
+        delivery_type_id=dynamics_filter.delivery_type_id,
+        delivery_basis_id=dynamics_filter.delivery_basis_id,
+        start_date=dynamics_filter.start_date,
+        end_date=dynamics_filter.end_date,
     )
     filtered_trading_results = await uow.data.list(result_filter)
     
