@@ -24,7 +24,7 @@ async def list_last_trading_dates(
     uow: unit_of_work.AsyncTradingResultsUnitOfWork = Depends(deps.get_uow),
     limit: Optional[int] = None,
 ):
-    last_dates_trading_results = await uow.data.list(group_by='date', limit=limit)
+    last_dates_trading_results = await uow.data.list(distinct_on='date', limit=limit)
 
     serialized_results: List[serializers.TradingDateRead] = []
     for trading_result in last_dates_trading_results:

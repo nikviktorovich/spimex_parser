@@ -38,6 +38,7 @@ class TradingResultsRepository:
     def list(
         self,
         result_filter: Optional[filters.TradingResultFilter] = None,
+        distinct_on: Optional[str] = None,
         order_by: Optional[str] = None,
         ascending: bool = True,
     ) -> List[models.TradingResult]:
@@ -126,7 +127,7 @@ class SqlAlchemyTradingResultRepository(TradingResultsRepository):
     def list(
         self,
         result_filter: Optional[filters.TradingResultFilter] = None,
-        group_by: Optional[str] = None,
+        distinct_on: Optional[str] = None,
         order_by: Optional[str] = None,
         ascending: bool = True,
         limit: Optional[int] = None,
@@ -136,8 +137,8 @@ class SqlAlchemyTradingResultRepository(TradingResultsRepository):
         if result_filter is not None:
             query = self._filter_query(query, result_filter=result_filter)
         
-        if group_by is not None:
-            query = self._group_query(query, group_by=group_by)
+        if distinct_on is not None:
+            query = self._distinct_on_query(query, column_name=distinct_on)
 
         if order_by is not None:
             query = self._order_query(
@@ -184,12 +185,13 @@ class SqlAlchemyTradingResultRepository(TradingResultsRepository):
         return query
 
 
-    def _group_query(
+    def _distinct_on_query(
         self,
         query: sqlalchemy.orm.Query[db_models.TradingResult],
-        group_by: str,
+        column_name: str,
     ) -> sqlalchemy.orm.Query[db_models.TradingResult]:
-        return query.group_by(group_by)
+        column = getattr(db_models.TradingResult, column_name)
+        return query.distinct(column)
 
 
     def _order_query(

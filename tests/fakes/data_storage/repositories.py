@@ -57,7 +57,7 @@ class AsyncFakeTradingResultsRepository(repositories.AsyncTradingResultsReposito
     async def list(
         self,
         result_filter: Optional[filters.TradingResultFilter] = None,
-        group_by: Optional[str] = None,
+        distinct_on: Optional[str] = None,
         order_by: Optional[str] = None,
         ascending: bool = True,
         limit: Optional[int] = None,
@@ -67,8 +67,8 @@ class AsyncFakeTradingResultsRepository(repositories.AsyncTradingResultsReposito
         if result_filter is not None:
             trading_results = self._filter(trading_results, result_filter)
         
-        if group_by is not None:
-            trading_results = self._group(trading_results, group_by)
+        if distinct_on is not None:
+            trading_results = self._distinct_on(trading_results, distinct_on)
 
         if order_by is not None:
             trading_results = self._order(
@@ -125,16 +125,16 @@ class AsyncFakeTradingResultsRepository(repositories.AsyncTradingResultsReposito
         return True
     
 
-    def _group(
+    def _distinct_on(
         self,
         trading_results: List[models.TradingResult],
-        group_by: str,
+        column_name: str,
     ) -> List[models.TradingResult]:
         grouped_results: List[models.TradingResult] = []
         attribute_values: Set[Any] = set()
 
         for trading_result in trading_results:
-            attribute_value = getattr(trading_result, group_by)
+            attribute_value = getattr(trading_result, column_name)
 
             if attribute_value in attribute_values:
                 continue
