@@ -7,6 +7,7 @@ from spimex_parser.modules.data_storage import repositories
 
 
 class TradingResultsUnitOfWork:
+    """Единица работы с хранилищем данных о результатах торгов со Spimex"""
     data: repositories.TradingResultsRepository
 
 
@@ -27,6 +28,7 @@ class TradingResultsUnitOfWork:
 
 
 class SqlAlchemyTradingResultsUnitOfWork(TradingResultsUnitOfWork):
+    """Единица работы с хранилищем данных о результатах торгов со Spimex"""
     session_factory: Callable[[], sqlalchemy.orm.Session]
     session: sqlalchemy.orm.Session
 

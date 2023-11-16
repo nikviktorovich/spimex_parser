@@ -1,8 +1,11 @@
 import uuid
 from typing import List
 from typing import Optional
+from typing import Tuple
 
-import sqlalchemy.orm
+import sqlalchemy
+import sqlalchemy.ext.asyncio
+from sqlalchemy import select
 from sqlalchemy import asc
 from sqlalchemy import desc
 
@@ -11,9 +14,11 @@ from spimex_parser.domain import models
 from spimex_parser.modules.data_storage import filters
 
 
-class TradingResultsRepository:
-    """Репозиторий хранилища данных о результатах торгов со Spimex"""
-    def get(self, trading_result_id: uuid.UUID) -> Optional[models.TradingResult]:
+class AsyncTradingResultsRepository:
+    """Асинхронный репозиторий хранилища данных о результатах торгов
+    со Spimex
+    """
+    async def get(self, trading_result_id: uuid.UUID) -> Optional[models.TradingResult]:
         """Возвращает данных о результате торгов с указанным id
         
         Возвращает данных о результате торгов с указанным id или None в случае,
@@ -35,32 +40,35 @@ class TradingResultsRepository:
         raise NotImplementedError()
     
 
-    def list(
+    async def list(
         self,
         result_filter: Optional[filters.TradingResultFilter] = None,
         distinct_on: Optional[str] = None,
         order_by: Optional[str] = None,
         ascending: bool = True,
+        limit: Optional[int] = None,
     ) -> List[models.TradingResult]:
         raise NotImplementedError()
 
 
-class SqlAlchemyTradingResultRepository(TradingResultsRepository):
-    """Репозиторий SQL хранилища данных о результатах торгов со Spimex"""
-    session: sqlalchemy.orm.Session
+class AsyncSqlAlchemyTradingResultRepository(AsyncTradingResultsRepository):
+    """Асинхронный репозиторий SQL хранилища данных о результатах торгов
+    со Spimex
+    """
+    session: sqlalchemy.ext.asyncio.AsyncSession
 
 
-    def __init__(self, session: sqlalchemy.orm.Session) -> None:
+    def __init__(self, session: sqlalchemy.ext.asyncio.AsyncSession) -> None:
         self.session = session
 
 
-    def get(self, trading_result_id: uuid.UUID) -> Optional[models.TradingResult]:
+    async def get(self, trading_result_id: uuid.UUID) -> Optional[models.TradingResult]:
         """Возвращает данных о результате торгов с указанным id
         
         Возвращает данных о результате торгов с указанным id или None в случае,
         если записи с таким id не существует
         """
-        record = self.session.get(db_models.TradingResult, trading_result_id)
+        record = await self.session.get(db_models.TradingResult, trading_result_id)
 
         if record is None:
             return None
@@ -124,7 +132,7 @@ class SqlAlchemyTradingResultRepository(TradingResultsRepository):
         )
     
 
-    def list(
+    async def list(
         self,
         result_filter: Optional[filters.TradingResultFilter] = None,
         distinct_on: Optional[str] = None,
@@ -132,7 +140,7 @@ class SqlAlchemyTradingResultRepository(TradingResultsRepository):
         ascending: bool = True,
         limit: Optional[int] = None,
     ) -> List[models.TradingResult]:
-        query = self.session.query(db_models.TradingResult)
+        query = select(db_models.TradingResult)
 
         if result_filter is not None:
             query = self._filter_query(query, result_filter=result_filter)
@@ -150,15 +158,16 @@ class SqlAlchemyTradingResultRepository(TradingResultsRepository):
         if limit is not None:
             query = self._limit_query(query, limit)
 
-        db_trading_results = query.all()
+        query_result = await self.session.execute(query)
+        db_trading_results = query_result.scalars().all()
         return [self._to_domain_model(res) for res in db_trading_results]
-
+    
 
     def _filter_query(
         self,
-        query: sqlalchemy.orm.Query[db_models.TradingResult],
+        query: sqlalchemy.Select[Tuple[db_models.TradingResult]],
         result_filter: filters.TradingResultFilter,
-    ) -> sqlalchemy.orm.Query[db_models.TradingResult]:
+    ) -> sqlalchemy.Select[Tuple[db_models.TradingResult]]:
         if result_filter.oil_id is not None:
             query = query.filter_by(oil_id=result_filter.oil_id)
         
@@ -183,34 +192,34 @@ class SqlAlchemyTradingResultRepository(TradingResultsRepository):
             )
         
         return query
-
+    
 
     def _distinct_on_query(
         self,
-        query: sqlalchemy.orm.Query[db_models.TradingResult],
+        query: sqlalchemy.Select[Tuple[db_models.TradingResult]],
         column_name: str,
-    ) -> sqlalchemy.orm.Query[db_models.TradingResult]:
+    ) -> sqlalchemy.Select[Tuple[db_models.TradingResult]]:
         column = getattr(db_models.TradingResult, column_name)
         return query.distinct(column)
 
 
     def _order_query(
         self,
-        query: sqlalchemy.orm.Query[db_models.TradingResult],
+        query: sqlalchemy.Select[Tuple[db_models.TradingResult]],
         order_by: str,
         ascending: bool,
-    ) -> sqlalchemy.orm.Query[db_models.TradingResult]:
+    ) -> sqlalchemy.Select[Tuple[db_models.TradingResult]]:
         order = asc(order_by) if ascending is True else desc(order_by)
         return query.order_by(order)
     
 
     def _limit_query(
         self,
-        query: sqlalchemy.orm.Query[db_models.TradingResult],
+        query: sqlalchemy.Select[Tuple[db_models.TradingResult]],
         limit: int,
-    ) -> sqlalchemy.orm.Query[db_models.TradingResult]:
+    ) -> sqlalchemy.Select[Tuple[db_models.TradingResult]]:
         return query.limit(limit)
-
+    
 
     def _to_domain_model(
         self,
